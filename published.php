@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Fetch ONLY approved records
 $stmt = $pdo->query("SELECT name, nic, reviewed_at FROM submissions WHERE status = 'approved' ORDER BY reviewed_at DESC");
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -27,7 +26,8 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
 
     <div class="userbar">
-        Logged in as <strong><?= htmlspecialchars($_SESSION['username']) ?></strong> |
+        Logged in as <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>
+        (<?= htmlspecialchars($_SESSION['role']) ?>) |
         <a href="auth.php?logout=1">Logout</a>
     </div>
 
@@ -46,6 +46,13 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php endforeach; ?>
     </table>
     <?php endif; ?>
-    <p><a href="index.php">New Submission</a> | <a href="review.php">Review Panel</a></p>
+
+    <p>
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+            <a href="review.php">Review Panel</a>
+        <?php else: ?>
+            <a href="index.php">New Submission</a>
+        <?php endif; ?>
+    </p>
 </body>
 </html>

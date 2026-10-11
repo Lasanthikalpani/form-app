@@ -13,33 +13,27 @@ if (!in_array($activeTab, ['login', 'register'])) {
 // Handle Logout
 if (isset($_GET['logout'])) {
     $_SESSION = [];
-
-    // Delete the session cookie
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
         setcookie(
-            session_name(),
-            '',
+            session_name(), '',
             time() - 42000,
-            $params["path"],
-            $params["domain"],
-            $params["secure"],
-            $params["httponly"]
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
         );
     }
-
     session_destroy();
     header('Location: auth.php?tab=login');
     exit;
 }
 
-// Redirect if already logged in
+// Redirect if already logged in (role-aware)
 if (isset($_SESSION['user_id'])) {
-    header('Location: index.php');
+    header('Location: ' . ($_SESSION['role'] === 'admin' ? 'review.php' : 'index.php'));
     exit;
 }
 
-// Handle Registration
+// Handle Registration (customers only)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     $activeTab = 'register';
     $username = trim($_POST['username'] ?? '');
@@ -59,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
             $msg = "Username already taken.";
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash) VALUES (?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'customer')");
             $stmt->execute([$username, $hash]);
             $msg = "Registration successful! Please log in.";
             $activeTab = 'login';
@@ -76,14 +70,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     if ($username === '' || $password === '') {
         $msg = "Both fields are required.";
     } else {
-        $stmt = $pdo->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
+        $stmt = $pdo->prepare("SELECT id, username, password_hash, role FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['user_id']  = $user['id'];
             $_SESSION['username'] = $user['username'];
-            header('Location: index.php');
+            $_SESSION['role']     = $user['role'];
+
+            // Role එක අනුව redirect
+            if ($user['role'] === 'admin') {
+                header('Location: review.php');
+            } else {
+                header('Location: index.php');
+            }
             exit;
         } else {
             $msg = "Invalid username or password.";
@@ -145,10 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                 Already have an account? <a href="?tab=login">Login here</a>
             </p>
         <?php endif; ?>
-
-        <p style="text-align:center; margin-top:20px; font-size:13px;">
-            <a href="index.php">← Back to Submission Form</a>
-        </p>
     </div>
 </body>
 </html>

@@ -7,6 +7,11 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+if ($_SESSION['role'] !== 'admin') {
+    header('Location: index.php');
+    exit;
+}
+
 $rows = $pdo->query("SELECT * FROM submissions ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -30,7 +35,8 @@ $rows = $pdo->query("SELECT * FROM submissions ORDER BY created_at DESC")->fetch
 <body>
 
     <div class="userbar">
-        Logged in as <strong><?= htmlspecialchars($_SESSION['username']) ?></strong> |
+        Logged in as <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>
+        (<?= htmlspecialchars($_SESSION['role']) ?>) |
         <a href="auth.php?logout=1">Logout</a>
     </div>
 
@@ -54,6 +60,6 @@ $rows = $pdo->query("SELECT * FROM submissions ORDER BY created_at DESC")->fetch
         </tr>
         <?php endforeach; ?>
     </table>
-    <p><a href="index.php">New Submission</a> | <a href="published.php">View Published</a></p>
+    <p><a href="published.php">View Published</a></p>
 </body>
 </html>
