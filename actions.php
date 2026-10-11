@@ -1,5 +1,11 @@
 <?php
 require 'config.php';
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: auth.php');
+    exit;
+}
 
 $id     = (int)($_GET['id'] ?? 0);
 $action = $_GET['action'] ?? '';

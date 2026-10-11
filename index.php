@@ -1,5 +1,11 @@
 <?php
 require 'config.php';
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: auth.php');
+    exit;
+}
 
 $msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,6 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="text" name="nic" placeholder="NIC" required>
         <button type="submit">Submit</button>
     </form>
-    <p><a href="review.php">Go to Review Panel</a> | <a href="published.php">View Published</a></p>
-</body>
+<p>
+    Logged in as <strong><?= htmlspecialchars($_SESSION['username']) ?></strong> |
+    <a href="auth.php?logout=1">Logout</a>
+</p>
+<p><a href="review.php">Go to Review Panel</a> | <a href="published.php">View Published</a></p></body>
 </html>

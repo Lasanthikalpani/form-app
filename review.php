@@ -1,5 +1,12 @@
 <?php
 require 'config.php';
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: auth.php');
+    exit;
+}
+
 $rows = $pdo->query("SELECT * FROM submissions ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -17,9 +24,16 @@ $rows = $pdo->query("SELECT * FROM submissions ORDER BY created_at DESC")->fetch
         .pending { color: orange; font-weight: bold; }
         .approved { color: green; font-weight: bold; }
         .rejected { color: red; font-weight: bold; }
+        .userbar { background: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: right; font-size: 14px; }
     </style>
 </head>
 <body>
+
+    <div class="userbar">
+        Logged in as <strong><?= htmlspecialchars($_SESSION['username']) ?></strong> |
+        <a href="auth.php?logout=1">Logout</a>
+    </div>
+
     <h2>Review Submissions</h2>
     <table>
         <tr><th>ID</th><th>Name</th><th>NIC</th><th>Status</th><th>Action</th></tr>
